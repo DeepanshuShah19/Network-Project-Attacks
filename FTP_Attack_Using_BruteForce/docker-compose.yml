@@ -7,7 +7,7 @@ services:
     image: ftpclient:2.1
     tty: true
     volumes:
-      - ./volumes:/volumes
+      - ./attacker:/attacker
   ftpclient: 
     cap_add: 
       - ALL
@@ -18,7 +18,7 @@ services:
 #      net-10.9.0.0:
 #        ipv4_address: 10.9.0.6
     volumes:
-      - ./volumes:/volumes
+      - ./ftp_user:/ftp_user
   ftpd-server: 
     environment: 
       FTP_USER_HOME: /home
@@ -30,7 +30,7 @@ services:
       FTP_PASSIVE_PORTS: '30000:35099'
     image: "stilliard/pure-ftpd"
     volumes:
-      - ./volumes:/volumes
+      - ./ftp_server:/ftp_server
 #    networks:
 #      net-10.9.0.0:
 #        ipv4_address: 10.9.0.9
