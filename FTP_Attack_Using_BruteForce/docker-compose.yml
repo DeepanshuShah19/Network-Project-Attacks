@@ -1,0 +1,42 @@
+version: "3.5" 
+services: 
+  attacker: 
+    cap_add: 
+      - ALL
+    container_name: attacker
+    image: ftpclient:2.1
+    tty: true
+    volumes:
+      - ./volumes:/volumes
+  ftpclient: 
+    cap_add: 
+      - ALL
+    container_name: ftpclient
+    image: ftpclient:2.1
+    tty: true
+#    networks:
+#      net-10.9.0.0:
+#        ipv4_address: 10.9.0.6
+    volumes:
+      - ./volumes:/volumes
+  ftpd-server: 
+    environment: 
+      FTP_USER_HOME: /home
+      FTP_USER_NAME: adam
+      FTP_USER_PASS: mynameisadam
+      PUBLICHOST: "0.0.0.0"
+      FTP_MAX_CLIENTS: 5000
+      FTP_MAX_CONNECTIONS: 5000
+      FTP_PASSIVE_PORTS: '30000:35099'
+    image: "stilliard/pure-ftpd"
+    volumes:
+      - ./volumes:/volumes
+#    networks:
+#      net-10.9.0.0:
+#        ipv4_address: 10.9.0.9
+#networks:
+#  net-10.9.0.0:
+#    name: net-10.9.0.0
+#    ipam:
+#      config:
+#      - subnet: 10.9.0.0/24
