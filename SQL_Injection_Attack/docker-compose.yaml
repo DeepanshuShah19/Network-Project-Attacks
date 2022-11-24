@@ -1,0 +1,84 @@
+version: "3"
+
+services:
+    Client-Malicious:
+        image: sqlinjection-client-malicious
+        container_name: client-malicious-container
+        tty: true
+        cap_add: 
+                - ALL
+        privileged: true
+        networks:
+            net-10.10.0.0:
+                ipv4_address: 10.10.0.5
+        build: 
+            context: Client-Malicious/
+            dockerfile: Dockerfile
+
+    Client-Safe:
+        image: sqlinjection-client-safe
+        container_name: client-safe-container
+        tty: true
+        cap_add: 
+                - ALL
+        privileged: true
+        networks:
+            net-10.10.0.0:
+                ipv4_address: 10.10.0.9
+        build: 
+            context: Client-Safe/
+            dockerfile: Dockerfile
+                  
+    mysql:
+        image: mysql:latest
+        container_name: mysql-container
+        ports:
+            - 3306:3306
+        volumes:
+            - ./Database/hr_user_details.sql:/docker-entrypoint-initdb.d/dump.sql
+        networks:
+            net-10.10.0.0:
+                ipv4_address: 10.10.0.7
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: hr
+            MYSQL_USER: ali
+            MYSQL_PASSWORD: password
+
+    Server-Malicious:
+        image: sqlinjection-server-malicious
+        container_name: server-malicious-container
+        tty: true
+        cap_add:
+                - ALL
+        networks:
+            net-10.10.0.0:
+                ipv4_address: 10.10.0.6
+
+        build:
+            context: Server-Malicious/
+            dockerfile: Dockerfile
+
+    
+    Server-Safe:
+        image: sqlinjection-server-safe
+        container_name: server-safe-container
+        tty: true
+        cap_add:
+                - ALL
+        networks:
+            net-10.10.0.0:
+                ipv4_address: 10.10.0.8
+
+        build:
+            context: Server-Safe/
+            dockerfile: Dockerfile
+
+networks:
+    net-10.10.0.0:
+        name: net-10.10.0.0
+        ipam:
+            config:
+                - subnet: 10.10.0.0/24
+
+
