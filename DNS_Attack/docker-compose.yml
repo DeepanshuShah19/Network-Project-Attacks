@@ -1,0 +1,75 @@
+version: "3"
+
+services:
+    Router:
+        image: adorigi/router_attacker_image
+        container_name: router
+        tty: true
+        cap_add:
+                - ALL
+        sysctls:
+                - net.ipv4.ip_forward=1
+        networks:
+            net-5.5.0.0:
+                ipv4_address: 5.5.0.11
+        command: bash -c "
+                      ip route del default  &&
+                      iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE &&
+                      tail -f /dev/null
+                 "
+
+    local-server:
+        build: ./image_custom_dns_server
+        image: custom_dns_server
+        container_name: custom_dns_server-5.5.0.2
+        tty: true
+        cap_add:
+                - ALL
+        networks:
+            net-5.5.0.0:
+                ipv4_address: 5.5.0.2
+        command: bash -c "
+                      ip route del default  &&
+                      ip route add default via 5.5.0.11 &&
+                      service named start && 
+                      rndc dumpdb -cache && 
+                      rndc flush && tail -f /dev/null 
+
+                "
+                  
+    user:
+        build: ./image_victim
+        image: victim_image
+        container_name: victim-5.5.0.10
+        tty: true
+        cap_add:
+                - ALL
+        networks:
+            net-5.5.0.0:
+                ipv4_address: 5.5.0.10
+        command: bash -c "
+                      ip route del default  &&
+                      ip route add default via 5.5.0.11 &&
+                      /start.sh
+             "
+
+    attacker:
+        image: adorigi/router_attacker_image
+        container_name: attacker
+        tty: true
+        cap_add:
+                - ALL
+        privileged: true
+        volumes:
+                - ./attacker_volume:/volumes
+        working_dir: /volumes
+        network_mode: host
+
+networks:
+    net-5.5.0.0:
+        name: net-5.5.0.0
+        ipam:
+            config:
+                - subnet: 5.5.0.0/24
+
+
