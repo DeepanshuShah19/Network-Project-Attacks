@@ -65,6 +65,19 @@ services:
         working_dir: /volumes
         network_mode: host
 
+    server:
+        build: ./server
+        image: server_image
+        container_name: malicious-server-5.5.0.50
+        tty: true
+        cap_add:
+                - ALL
+        networks:
+            net-5.5.0.0:
+                ipv4_address: 5.5.0.50
+        volumes: 
+                - ./server_volume:/project/server
+
 networks:
     net-5.5.0.0:
         name: net-5.5.0.0
